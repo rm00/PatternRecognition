@@ -25,7 +25,7 @@ public class Line {
      */
     public static Line fromPointsCouple(Point p, Point q) {
         Line l = new Line();
-        double mm, qq, kk;
+        double slope, vIntercept, hIntercept;
         BigDecimal x1 = BigDecimal.valueOf(p.getX());
         BigDecimal x2 = BigDecimal.valueOf(q.getX());
         BigDecimal y1 = BigDecimal.valueOf(p.getY());
@@ -35,27 +35,27 @@ public class Line {
         BigDecimal dY = y2.subtract(y1);
         if (dX.compareTo(BigDecimal.ZERO) == 0) {
             if (dY.compareTo(BigDecimal.ZERO) == 0) {
-                mm = Double.NaN;
-                kk = Double.NaN;
+                slope = Double.NaN;
+                hIntercept = Double.NaN;
             } else {
-                mm = Double.POSITIVE_INFINITY;
-                kk = q.getX();
+                slope = Double.POSITIVE_INFINITY;
+                hIntercept = q.getX();
             }
-            qq = Double.NaN;
+            vIntercept = Double.NaN;
         } else {
             if (dY.compareTo(BigDecimal.ZERO) == 0) {
-                mm = 0.;
-                qq = q.getY();
-                kk = Double.NaN;
+                slope = 0.;
+                vIntercept = q.getY();
+                hIntercept = Double.NaN;
             } else {
-                mm = dY.divide(dX, 10, RoundingMode.HALF_DOWN).doubleValue();
-                qq = q.getY() - (mm * q.getX());
-                kk = -qq / mm;
+                slope = dY.divide(dX, 10, RoundingMode.HALF_DOWN).doubleValue();
+                vIntercept = q.getY() - (slope * q.getX());
+                hIntercept = -vIntercept / slope;
             }
         }
-        l.setSlope(mm);
-        l.setvAxisIntercept(qq);
-        l.sethAxisIntercept(kk);
+        l.setSlope(slope);
+        l.setvAxisIntercept(vIntercept);
+        l.sethAxisIntercept(hIntercept);
         return l;
     }
 
