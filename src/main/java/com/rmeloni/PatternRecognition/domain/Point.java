@@ -3,6 +3,9 @@ package com.rmeloni.PatternRecognition.domain;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+/**
+ * A Point is defined by an x-coordinate (double) and an y-coordinate (double).
+ */
 public class Point {
 
     @NotNull
@@ -15,7 +18,7 @@ public class Point {
     }
 
     /**
-     * Creates a Point with the specified coordinates
+     * Creates a Point with the specified coordinates.
      *
      * @param x is the x-coordinate
      * @param y is the y-coordinate
