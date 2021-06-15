@@ -13,6 +13,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -26,8 +28,8 @@ import java.util.stream.Collectors;
 public class SharedLinesCollinearPoints implements CollinearPoints {
 
     private static final Logger logger = LoggerFactory.getLogger(SharedLinesCollinearPoints.class);
-    private Map<Line, Set<Point>> linesToPoints = new HashMap<>();
-    private Boolean mapIsInitialized = false;
+    private final Map<Line, Set<Point>> linesToPoints = new ConcurrentHashMap<>();
+    private final AtomicBoolean mapIsInitialized = new AtomicBoolean(false);
 
     @Autowired
     private Space space;
@@ -44,9 +46,8 @@ public class SharedLinesCollinearPoints implements CollinearPoints {
             return new ArrayList<>();   // no need to filter the Map: the solution is impossible
         }
 
-        if (!mapIsInitialized) {
+        if (mapIsInitialized.compareAndSet(false, true)) {
             initMap();
-            mapIsInitialized = true;
             logger.info("Map initialized");
         }
 
@@ -61,9 +62,9 @@ public class SharedLinesCollinearPoints implements CollinearPoints {
      * If a SpaceClearedEvent is fired, the state is reset.
      */
     @EventListener(SpaceClearedEvent.class)
-    private void clearMapAndReset() {
+    private synchronized void clearMapAndReset() {
         linesToPoints.clear();
-        mapIsInitialized = false;
+        mapIsInitialized.set(false);
         logger.info("Map cleared; state reset");
     }
 
@@ -74,8 +75,8 @@ public class SharedLinesCollinearPoints implements CollinearPoints {
      * @param pointAddedEvent is the PointAddedEvent fired
      */
     @EventListener(PointAddedEvent.class)
-    private void conditionallyUpdateMap(PointAddedEvent pointAddedEvent) {
-        if (mapIsInitialized) {
+    private synchronized void conditionallyUpdateMap(PointAddedEvent pointAddedEvent) {
+        if (mapIsInitialized.get()) {
             this.updateMap(pointAddedEvent.getPointAdded());
             logger.info("Map updated");
         }   // else do nothing
@@ -84,11 +85,12 @@ public class SharedLinesCollinearPoints implements CollinearPoints {
     /**
      * For each couple of distinct Points, it finds the Line on which the couple lies and assigns the couple to
      * that Line through the Map.
+     *
      */
     private void initMap() {
         Set<Point> startingPoints = space.getPoints();
         Set<Point> endingPoints = new HashSet<>(startingPoints);
-        this.linesToPoints = new HashMap<>();
+        this.linesToPoints.clear();
 
         for (Point p : startingPoints) {
             endingPoints.remove(p);

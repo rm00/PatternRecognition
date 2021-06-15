@@ -1,5 +1,7 @@
 package com.rmeloni.PatternRecognition.domain;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 /**
@@ -23,28 +25,37 @@ public class Line {
      */
     public static Line fromPointsCouple(Point p, Point q) {
         Line l = new Line();
-        double slope, vInt, hInt;
-        if ((q.getX() - p.getX()) == 0) {
-            if ((q.getY() - p.getY()) == 0) {
-                slope = Double.NaN;
-                hInt = Double.NaN;
+        double mm, qq, kk;
+        BigDecimal x1 = BigDecimal.valueOf(p.getX());
+        BigDecimal x2 = BigDecimal.valueOf(q.getX());
+        BigDecimal y1 = BigDecimal.valueOf(p.getY());
+        BigDecimal y2 = BigDecimal.valueOf(q.getY());
+
+        BigDecimal dX = x2.subtract(x1);
+        BigDecimal dY = y2.subtract(y1);
+        if (dX.compareTo(BigDecimal.ZERO) == 0) {
+            if (dY.compareTo(BigDecimal.ZERO) == 0) {
+                mm = Double.NaN;
+                kk = Double.NaN;
             } else {
-                slope = Double.POSITIVE_INFINITY;
-                hInt = q.getX();
+                mm = Double.POSITIVE_INFINITY;
+                kk = q.getX();
             }
-            vInt = Double.NaN;
+            qq = Double.NaN;
         } else {
-            slope = (q.getY() - p.getY()) / (q.getX() - p.getX());
-            vInt = q.getY() - (slope * q.getX());
-            if (slope == 0) {
-                hInt = Double.NaN;
+            if (dY.compareTo(BigDecimal.ZERO) == 0) {
+                mm = 0.;
+                qq = q.getY();
+                kk = Double.NaN;
             } else {
-                hInt = -vInt / slope;
+                mm = dY.divide(dX, 10, RoundingMode.HALF_DOWN).doubleValue();
+                qq = q.getY() - (mm * q.getX());
+                kk = -qq / mm;
             }
         }
-        l.setSlope(slope);
-        l.setvAxisIntercept(vInt);
-        l.sethAxisIntercept(hInt);
+        l.setSlope(mm);
+        l.setvAxisIntercept(qq);
+        l.sethAxisIntercept(kk);
         return l;
     }
 
